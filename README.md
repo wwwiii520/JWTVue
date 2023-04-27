@@ -10,6 +10,7 @@ This template should help get you started developing with Vue 3 in Vite.
 
 See [Vite Configuration Reference](https://vitejs.dev/config/).
 
+.Net6 后端 https://github.com/wwwiii520/.Net6-JWT.git
 ## Project Setup
 
 ```sh
