@@ -50,7 +50,7 @@ service.interceptors.request.use(
         }
     },
     error => {
-        console.log('err：' + error);
+        console.log('err:' + error);
         return Promise.reject(error);
     }
 )
