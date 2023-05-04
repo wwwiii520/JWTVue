@@ -2,7 +2,7 @@
 import TheWelcome from '../components/TheWelcome.vue'
 import { test } from '../api'
 
-// const time = 1 * 5 * 1000
+const time = 1 * 5 * 1000
 // clearTimeout(timeout)
 var timeout1 = function (index) {
   setTimeout(() => {
@@ -15,7 +15,7 @@ var timeout1 = function (index) {
       console.log("Task1:测试失败")
       console.log(error)
     })
-  }, 100)
+  }, 10000)
 }
 timeout1()
 

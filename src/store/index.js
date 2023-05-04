@@ -1,5 +1,5 @@
 import { createStore } from 'vuex'
-import { login, refreshToken } from '../api'
+import { login, refreshToken, validateToken } from '../api'
 
 export default createStore({
     state: {
@@ -51,15 +51,20 @@ export default createStore({
         // 提交mutation，异步操作
         // user login 登录
         login({ commit }, userInfo) {
-            const { username, password } = userInfo
             return new Promise((resolve, reject) => {
-                login({ username: username.trim(), password: password }).then(response => {
+                login(userInfo).then(response => {
                     const { data } = response
-                    commit('SET_ACESSTOKEN', data.accessToken)
-                    commit('SET_REFRESHTOKEN', data.refreshToken)
-                    commit('SET_EXPIRYTIME', data.expiryTime)
-                    commit('SET_REFRESHEXPIRYTIME', data.refreshExpiryTime)
-                    resolve()
+                    // 模拟强制登录
+                    if (data.violentLogin) {
+                        resolve(true)
+                    }
+                    else {
+                        commit('SET_ACESSTOKEN', data.accessToken)
+                        commit('SET_REFRESHTOKEN', data.refreshToken)
+                        commit('SET_EXPIRYTIME', data.expiryTime)
+                        commit('SET_REFRESHEXPIRYTIME', data.refreshExpiryTime)
+                        resolve(false)
+                    }
                 }).catch(error => {
                     reject(error)
                 })
@@ -75,17 +80,29 @@ export default createStore({
             return new Promise((resolve, reject) => {
                 // 为了测试多个请求挂起，不会丢失请求，设置延时
                 // setTimeout(function () {
-                    refreshToken(data.accessToken, data.refreshToken).then(response => {
-                        const { data } = response
-                        commit('SET_ACESSTOKEN', data.accessToken)
-                        commit('SET_REFRESHTOKEN', data.refreshToken)
-                        commit('SET_EXPIRYTIME', data.expiryTime)
-                        commit('SET_REFRESHEXPIRYTIME', data.refreshExpiryTime)
-                        resolve()
-                    }).catch(error => {
-                        reject(error)
-                    })
+                refreshToken(data.accessToken, data.refreshToken).then(response => {
+                    const { data } = response
+                    commit('SET_ACESSTOKEN', data.accessToken)
+                    commit('SET_REFRESHTOKEN', data.refreshToken)
+                    commit('SET_EXPIRYTIME', data.expiryTime)
+                    commit('SET_REFRESHEXPIRYTIME', data.refreshExpiryTime)
+                    resolve()
+                }).catch(error => {
+                    reject(error)
+                })
                 // }, 3000)
+            })
+        },
+        validateToken({ }, token) {
+            return new Promise((resolve, reject) => {
+                validateToken(token).then(response => {
+                    const { data } = response
+                    if (data === true)
+                        resolve(true)
+                    else resolve(false)
+                }).catch(error => {
+                    reject(error)
+                })
             })
         }
     },

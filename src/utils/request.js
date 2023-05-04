@@ -1,7 +1,8 @@
 import axios from 'axios'
 import store from '@/store'
 import router from '../router'
-
+import { ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 // axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8';
 // axios.defaults.headers['Platform'] = 'web'
 // 需要取消请求的集合
@@ -31,22 +32,22 @@ service.interceptors.request.use(
                     config.headers['Authorization'] = `Bearer ${store.getters['accessToken']}`
                     resolve(config)
                 })
-            });
-            return retryOriginalRequest;
-            // const CancelToken = axios.CancelToken;
-            // const source = CancelToken.source();
-            // config.cancelToken = source.token; 
-            // config.cancel = source.cancel;
+            })
+            return retryOriginalRequest
+            // const CancelToken = axios.CancelToken
+            // const source = CancelToken.source()
+            // config.cancelToken = source.token
+            // config.cancel = source.cancel
             // // 将本次请求放入待取消请求集合
-            // config.cancelToken = source.token;
-            // cancelTokens.push(() => source.cancel("令牌无效取消请求"));
+            // config.cancelToken = source.token
+            // cancelTokens.push(() => source.cancel("令牌无效取消请求"))
             // source.cancel()
             // config.cancel()
             // return config
         } else {
             // 让每个请求携带自定义token 请根据实际情况自行修改
             config.headers['Authorization'] = `Bearer ${store.getters['accessToken']}`
-            return config;
+            return config
         }
     },
     error => {
@@ -86,12 +87,12 @@ service.interceptors.response.use(
         }
         const config = error.config
         const response = error.response
-        if (response && response.status === 401 && !validateUrlNotAuthentication(config.url)) {
+        if (response && (response.status === 401 || response.status === 403) && !validateUrlNotAuthentication(config.url)) {
             // 刷新token的函数,添加一个开关，防止重复请求
             if (!isTokenRefreshing) {
                 refreshTokenRequst()
             }
-            isTokenRefreshing = false;
+            isTokenRefreshing = false
             // 将当前的请求保存在观察者数组中
             const retryOriginalRequest = new Promise((resolve) => {
                 addSubscriber(() => {
@@ -116,12 +117,12 @@ service.interceptors.response.use(
 )
 
 function checkStatus(response) {
-    if (response && response.status === 401 && !validateUrlNotAuthentication(config.url)) {
+    if (response && (response.status === 401 || response.status === 403) && !validateUrlNotAuthentication(config.url)) {
         // 刷新token的函数,这需要添加一个开关，防止重复请求
         if (!isTokenRefreshing) {
             refreshTokenRequst()
         }
-        isTokenRefreshing = false;
+        isTokenRefreshing = false
         // 将当前的请求保存在观察者数组中
         const retryOriginalRequest = new Promise((resolve) => {
             addSubscriber(() => {
@@ -131,7 +132,7 @@ function checkStatus(response) {
         return retryOriginalRequest
     }
     else {
-        return response;
+        return response
     }
 }
 
@@ -144,14 +145,23 @@ function refreshTokenRequst() {
         })
         .catch(() => {
             console.log('refreshToken 失败')
-            router.push({
-                path: 'login'
+
+            ElMessageBox.confirm('登录已失效，是否返回登录', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                router.push('login')
+            }).catch(() => {
+                ElMessage.info({
+                    message: '已取消'
+                })
             })
         })
         .finally(() => {
-            // 撕掉标记 
-            isTokenRefreshing = false;
-        });
+            // 撕掉标记
+            isTokenRefreshing = false
+        })
 }
 
 // 观察者
@@ -162,7 +172,7 @@ function onAccessTokenFetched() {
         callback();
         console.log('挂起请求执行' + callback)
     })
-    subscribers = [];
+    subscribers = []
 }
 
 function addSubscriber(callback) {
@@ -170,7 +180,7 @@ function addSubscriber(callback) {
 }
 function validateUrlNotAuthentication(url) {
     if (url && (url.includes('/api/Auth/GetToken') || url.includes('/api/Auth/RefreshToken') ||
-    url.includes('login')))
+        url.includes('/api/Auth/ValidateToken')))
         return true
     else false
 }

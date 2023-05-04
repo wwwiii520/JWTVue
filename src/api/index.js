@@ -17,6 +17,13 @@ export function refreshToken(accessToken, refreshToken) {
   })
 }
 
+export function validateToken(token) {
+  return request({
+    url: '/api/Auth/ValidateToken',
+    method: 'get',
+    params: {token:token}
+  })
+}
 export function test(i) {
   return request({
     url: '/api/Auth/Test',
